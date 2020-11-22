@@ -55,7 +55,7 @@ resource "aws_iam_policy" "lambda_policy" {
       "Action": [
         "secretsmanager:GetSecretValue"
       ],
-      "Resource": "*",
+      "Resource": "${aws_secretsmanager_secret.api_key.arn}",
       "Effect": "Allow"
     }
   ]
