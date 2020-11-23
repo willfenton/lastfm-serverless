@@ -67,33 +67,6 @@ resource "aws_iam_role_policy_attachment" "lambda_policy" {
   policy_arn = aws_iam_policy.lambda_policy.arn
 }
 
-resource "aws_cloudwatch_log_group" "test_lambda_log_group" {
-  name              = "/aws/lambda/${aws_lambda_function.test_lambda.function_name}"
-  retention_in_days = 14
-}
-
-resource "aws_lambda_function" "test_lambda" {
-  function_name = "${var.project_name}-test-lambda"
-  role          = aws_iam_role.lambda_role.arn
-
-  s3_bucket         = aws_s3_bucket_object.lambda_code.bucket
-  s3_key            = aws_s3_bucket_object.lambda_code.key
-  s3_object_version = aws_s3_bucket_object.lambda_code.version_id
-  source_code_hash = "${filebase64sha256(aws_s3_bucket_object.lambda_code.source)}-${aws_iam_role.lambda_role.arn}"
-  handler           = "handlers.test_handler"
-  runtime           = "python3.8"
-  timeout           = 900
-
-  environment {
-    variables = {
-      aws_region  = var.aws_region,
-      lastfm_user = var.lastfm_user,
-      secret_name = aws_secretsmanager_secret.api_key.name,
-      data_bucket = aws_s3_bucket.data_bucket.bucket
-    }
-  }
-}
-
 resource "aws_cloudwatch_log_group" "update_range_log_group" {
   name              = "/aws/lambda/${aws_lambda_function.update_range.function_name}"
   retention_in_days = 14
