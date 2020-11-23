@@ -32,7 +32,7 @@ def lambda_handler(event, context):
     response = lambda_client.invoke(
         FunctionName=update_lambda_name,
         InvocationType="Event",
-        Payload=bytes(json.dumps(update_lambda_event)),
+        Payload=json.dumps(update_lambda_event),
     )
 
-    return response
+    return {"key": "value"}
