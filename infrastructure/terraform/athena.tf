@@ -4,9 +4,9 @@ resource "aws_athena_database" "database" {
 }
 
 resource "aws_athena_named_query" "create_table" {
-  name      = "${lower(replace(var.project_name, "-", "_"))}_create_table_query"
-  database  = aws_athena_database.database.name
-  query     = <<EOF
+  name     = "${lower(replace(var.project_name, "-", "_"))}_create_table_query"
+  database = aws_athena_database.database.name
+  query    = <<EOF
 CREATE EXTERNAL TABLE IF NOT EXISTS ${aws_athena_database.database.name}.scrobbles (
   `track_name` string,
   `album_name` string,
@@ -21,9 +21,9 @@ EOF
 }
 
 resource "aws_athena_named_query" "top_albums" {
-  name      = "${lower(replace(var.project_name, "-", "_"))}_top_albums_query"
-  database  = aws_athena_database.database.name
-  query     = <<EOF
+  name     = "${lower(replace(var.project_name, "-", "_"))}_top_albums_query"
+  database = aws_athena_database.database.name
+  query    = <<EOF
 SELECT album_name, artist_name, MIN(unix_timestamp), MAX(unix_timestamp), COUNT(*)
 FROM scrobbles
 GROUP BY album_name, artist_name

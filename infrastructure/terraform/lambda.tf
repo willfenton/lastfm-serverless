@@ -79,7 +79,7 @@ resource "aws_lambda_function" "update_range" {
   s3_bucket         = aws_s3_bucket_object.lambda_code.bucket
   s3_key            = aws_s3_bucket_object.lambda_code.key
   s3_object_version = aws_s3_bucket_object.lambda_code.version_id
-  source_code_hash = "${filebase64sha256(aws_s3_bucket_object.lambda_code.source)}-${aws_iam_role.lambda_role.arn}"
+  source_code_hash  = "${filebase64sha256(aws_s3_bucket_object.lambda_code.source)}-${aws_iam_role.lambda_role.arn}"
   handler           = "update_range.lambda_handler"
   runtime           = "python3.8"
   timeout           = 900
@@ -106,16 +106,44 @@ resource "aws_lambda_function" "daily_update" {
   s3_bucket         = aws_s3_bucket_object.lambda_code.bucket
   s3_key            = aws_s3_bucket_object.lambda_code.key
   s3_object_version = aws_s3_bucket_object.lambda_code.version_id
-  source_code_hash = "${filebase64sha256(aws_s3_bucket_object.lambda_code.source)}-${aws_iam_role.lambda_role.arn}"
+  source_code_hash  = "${filebase64sha256(aws_s3_bucket_object.lambda_code.source)}-${aws_iam_role.lambda_role.arn}"
   handler           = "daily_update.lambda_handler"
   runtime           = "python3.8"
   timeout           = 900
 
   environment {
     variables = {
-      aws_region  = var.aws_region,
-      timezone    = var.timezone,
+      aws_region         = var.aws_region,
+      timezone           = var.timezone,
       update_lambda_name = aws_lambda_function.update_range.function_name
+    }
+  }
+}
+
+resource "aws_cloudwatch_log_group" "get_all_scrobbles_log_group" {
+  name              = "/aws/lambda/${aws_lambda_function.get_all_scrobbles.function_name}"
+  retention_in_days = 14
+}
+
+resource "aws_lambda_function" "get_all_scrobbles" {
+  function_name = "${var.project_name}-get-all-scrobbles"
+  role          = aws_iam_role.lambda_role.arn
+
+  s3_bucket         = aws_s3_bucket_object.lambda_code.bucket
+  s3_key            = aws_s3_bucket_object.lambda_code.key
+  s3_object_version = aws_s3_bucket_object.lambda_code.version_id
+  source_code_hash  = "${filebase64sha256(aws_s3_bucket_object.lambda_code.source)}-${aws_iam_role.lambda_role.arn}"
+  handler           = "get_all_scrobbles.lambda_handler"
+  runtime           = "python3.8"
+  timeout           = 900
+
+  environment {
+    variables = {
+      aws_region         = var.aws_region,
+      timezone           = var.timezone,
+      update_lambda_name = aws_lambda_function.update_range.function_name
+      lastfm_user        = var.lastfm_user
+      secret_name        = aws_secretsmanager_secret.api_key.name
     }
   }
 }

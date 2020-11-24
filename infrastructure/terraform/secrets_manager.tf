@@ -1,5 +1,5 @@
 resource "aws_secretsmanager_secret" "api_key" {
-  name = "${var.project_name}-api-key"
+  name                    = "${var.project_name}-api-key"
   recovery_window_in_days = 0
 }
 
