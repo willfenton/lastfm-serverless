@@ -1,7 +1,9 @@
 import logging
+import math
+import os
+
 import lastfm
 import s3
-import os
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -13,29 +15,41 @@ def lambda_handler(event, context):
     from_uts = event["from_uts"]
     to_uts = event["to_uts"]
 
+    username = os.environ["lastfm_user"]
     s3_bucket = os.environ["data_bucket"]
     api_key = lastfm.get_api_key()
 
+    result = {"num_pages": 0, "s3_objects_written": []}
+
+    # get specific pages in the time range
+    # {
+    #     "from_uts": 1606114800,
+    #     "to_uts": 1606201199,
+    #     "pages": [1, 2, 3, 4, 5, 6]
+    # }
     if "pages" in event:
         pages = event["pages"]
-        for page_number in pages:
-            page = lastfm.get_page_from_to(api_key, page_number, from_uts, to_uts)
-            page_csv = lastfm.page_to_csv_string(page)
-            s3_key = f"scrobbles/{from_uts}-{to_uts}-{page_number}.csv"
-            s3.write_string_to_s3(s3_bucket, s3_key, page_csv)
+
+    # get all pages in the time range
+    # {
+    #     "from_uts": 1606114800,
+    #     "to_uts": 1606201199
+    # }
     else:
-        first_page = lastfm.get_page_from_to(api_key, 1, from_uts, to_uts)
-        page_csv = lastfm.page_to_csv_string(first_page)
-        s3_key = f"scrobbles/{from_uts}-{to_uts}-1.csv"
-        s3.write_string_to_s3(s3_bucket, s3_key, page_csv)
+        page = lastfm.get_page(api_key, username, from_uts=from_uts, to_uts=to_uts, limit=1)
+        num_scrobbles = int(page["recenttracks"]["@attr"]["total"])
+        num_pages = math.ceil(num_scrobbles / 200)
+        pages = list(range(1, num_pages + 1))
 
-        total_pages = int(first_page["recenttracks"]["@attr"]["totalPages"])
+    for page_number in pages:
+        page = lastfm.get_page(api_key, username, page_number, from_uts, to_uts)
+        csv = lastfm.scrobbles_to_csv_string(page)
+        s3_key = f"scrobbles/{from_uts}-{to_uts}-{page_number}.csv"
+        s3.write_string_to_s3(s3_bucket, s3_key, csv)
 
-        if total_pages > 1:
-            for page_number in range(2, total_pages + 1):
-                page = lastfm.get_page_from_to(api_key, page_number, from_uts, to_uts)
-                page_csv = lastfm.page_to_csv_string(page)
-                s3_key = f"scrobbles/{from_uts}-{to_uts}-{page_number}.csv"
-                s3.write_string_to_s3(s3_bucket, s3_key, page_csv)
+        result["num_pages"] += 1
+        result["s3_objects_written"].append(s3_key)
 
-    return {"key": "value"}
+    logger.info(result)
+
+    return result

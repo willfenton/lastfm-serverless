@@ -1,0 +1,9 @@
+# Example here https://github.com/psf/black/blob/master/pyproject.toml
+[tool.black]
+line-length = 120
+target-version = ['py36', 'py37', 'py38']
+exclude = '''
+/(
+    \.git
+)/
+'''

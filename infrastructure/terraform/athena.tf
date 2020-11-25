@@ -11,7 +11,8 @@ CREATE EXTERNAL TABLE IF NOT EXISTS ${aws_athena_database.database.name}.scrobbl
   `track_name` string,
   `album_name` string,
   `artist_name` string,
-  `unix_timestamp` int
+  `unix_timestamp` int,
+  `album_art_url` string
 )
 ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde'
 WITH SERDEPROPERTIES ("separatorChar" = ",", "escapeChar" = "\\")

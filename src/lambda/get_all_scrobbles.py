@@ -1,50 +1,53 @@
+import json
 import logging
+import math
 import os
 from datetime import datetime, timedelta
-import pytz
+
 import boto3
-import json
+import pytz
+
 import lastfm
-import requests
-import math
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 
-def chunks(lst, n):
-    """Yield successive n-sized chunks from lst."""
-    for i in range(0, len(lst), n):
-        yield lst[i : i + n]
+# splits a list into n evenly sized chunks
+# https://stackoverflow.com/questions/2130016
+def split(a, n):
+    k, m = divmod(len(a), n)
+    return (a[i * k + min(i, m) : (i + 1) * k + min(i + 1, m)] for i in range(n))
 
 
 def lambda_handler(event, context):
-    timezone = os.environ["timezone"]
+    logger.info(event)
+
     username = os.environ["lastfm_user"]
     api_key = lastfm.get_api_key()
-    concurrency = 10
+
+    # how many API requests to make at once
+    # this many lambdas will be run at the end, each one fetching some of the scrobble pages
+    concurrency_cap = 10
+
+    timezone = os.environ["timezone"]
+    now = datetime.now(pytz.timezone(timezone))
 
     from_uts = 0
-    to_uts = int(
-        (
-            datetime.now(pytz.timezone(timezone)).replace(
-                hour=0, minute=0, second=0, microsecond=0
-            )
-            - timedelta(seconds=1)
-        ).timestamp()
-    )
+    to_uts = int((now.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(seconds=1)).timestamp())
 
-    page = requests.get(
-        f"http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&api_key={api_key}&user={username}&format=json&page=1&limit=1&from={from_uts}&to={to_uts}"
-    ).json()
+    # get # of scrobbles and calculate # of pages
+    page = lastfm.get_page(api_key, username, from_uts=from_uts, to_uts=to_uts, limit=1)
     num_scrobbles = int(page["recenttracks"]["@attr"]["total"])
     num_pages = math.ceil(num_scrobbles / 200)
-    pages = chunks([i for i in range(1, num_pages + 1)], concurrency)
-    logger.info(from_uts, to_uts, num_scrobbles, num_pages, pages)
+    pages = list(split([i for i in range(1, num_pages + 1)], concurrency_cap))
+
+    logger.info(f"Total: {num_scrobbles} scrobbles ({num_pages} pages)")
 
     lambda_client = boto3.client("lambda")
     update_lambda_name = os.environ["update_lambda_name"]
 
+    # spawn concurrency_cap lambdas to get scrobbles
     for page_chunk in pages:
         event = {"from_uts": from_uts, "to_uts": to_uts, "pages": page_chunk}
         logger.info(event)
@@ -55,4 +58,4 @@ def lambda_handler(event, context):
         )
         logger.info(response)
 
-    return {"key": "value"}
+    return

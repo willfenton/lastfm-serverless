@@ -1,71 +1,84 @@
-import json
-import boto3
-from botocore.exceptions import ClientError
-import logging
-import requests
-import os
-import io
 import csv
+import io
+import json
+import logging
+import os
 
+import boto3
+import requests
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 
 def get_api_key():
-
     secret_name = os.environ["secret_name"]
     region_name = os.environ["aws_region"]
 
-    # Create a Secrets Manager client
-    session = boto3.session.Session()
-    client = session.client(service_name="secretsmanager", region_name=region_name)
+    client = boto3.client(service_name="secretsmanager", region_name=region_name)
 
-    try:
-        get_secret_value_response = client.get_secret_value(SecretId=secret_name)
-    except ClientError as e:
-        logger.error(e)
-        raise e
-    else:
-        secrets = json.loads(get_secret_value_response["SecretString"])
-        api_key = secrets["api_key"]
-        return api_key
+    get_secret_value_response = client.get_secret_value(SecretId=secret_name)
+    secrets = json.loads(get_secret_value_response["SecretString"])
+    api_key = secrets["api_key"]
+
+    return api_key
 
 
-def get_page(api_key, page):
+def get_page(api_key, username, page_number=1, from_uts=0, to_uts=10000000000, limit=200):
+    url = "http://ws.audioscrobbler.com/2.0/"
+    params = {
+        "method": "user.getrecenttracks",
+        "format": "json",
+        "username": username,
+        "api_key": api_key,
+        "limit": limit,
+        "page": page_number,
+        "from": from_uts,
+        "to": to_uts,
+    }
 
-    username = os.environ["lastfm_user"]
-    limit = 200
-    url = f"http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&api_key={api_key}&user={username}&format=json&page={page}&limit={limit}"
+    request = requests.PreparedRequest()
+    request.prepare_url(url, params)
 
-    page = requests.get(url)
+    logger.info(f"Requesting: {request.url.replace(api_key, 'REDACTED_API_KEY')}")
 
-    return page.json()
+    response = requests.get(request.url)
 
+    if response.status_code != 200:
+        logger.error(f"Non-200 Status: {response.status_code}")
 
-def get_page_from_to(api_key, page, from_uts, to_uts):
+    response_json = response.json()
 
-    username = os.environ["lastfm_user"]
-    limit = 200
-    url = f"http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&api_key={api_key}&user={username}&format=json&page={page}&limit={limit}&from={from_uts}&to={to_uts}"
+    if "error" in response_json:
+        logger.error(f"Error {response['error']}: {response['message']}")
 
-    page = requests.get(url)
-
-    return page.json()
+    return response_json
 
 
-def page_to_csv_string(page):
-
+def scrobbles_to_csv_string(page):
+    # string that the CSV writer can write to like a file
     csv_string = io.StringIO()
+
     writer = csv.writer(csv_string, quoting=csv.QUOTE_NONNUMERIC)
 
     for scrobble in page["recenttracks"]["track"]:
+        # skip currently playing tracks
         if "@attr" in scrobble and scrobble["@attr"]["nowplaying"] == "true":
             continue
+
         track_name = scrobble["name"]
         album_name = scrobble["album"]["#text"]
         artist_name = scrobble["artist"]["#text"]
+
         unix_timestamp = int(scrobble["date"]["uts"])
-        writer.writerow([track_name, album_name, artist_name, unix_timestamp])
+
+        # response includes 4 sizes of album art for each scrobble, use the largest (300x300)
+        album_art_url = ""
+        for image in scrobble["image"]:
+            if image["size"] == "extralarge":
+                album_art_url = image["#text"]
+
+        csv_row = [track_name, album_name, artist_name, unix_timestamp, album_art_url]
+        writer.writerow(csv_row)
 
     return csv_string.getvalue()
