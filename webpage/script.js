@@ -12,7 +12,7 @@ var vm = new Vue({
         fetch(this.albums_url)
             .then(response => response.json())
             .then(json => {
-                this.albums = json.albums;
+                this.albums = json.albums.slice(0, 200);
                 if (!window.mobilecheck()) {
                     $(function () {
                         $('[data-toggle="tooltip"]').tooltip({ boundary: 'window' })
