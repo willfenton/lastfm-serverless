@@ -33,8 +33,8 @@ resource "aws_s3_bucket" "data_bucket" {
   acl    = "private"
 
   lifecycle_rule {
-    id      = aws_athena_named_query.create_table.name
-    prefix  = "${aws_athena_named_query.create_table.name}/"
+    id      = aws_athena_named_query.create_table_scrobbles.name
+    prefix  = "${aws_athena_named_query.create_table_scrobbles.name}/"
     enabled = true
 
     expiration {
@@ -43,8 +43,18 @@ resource "aws_s3_bucket" "data_bucket" {
   }
 
   lifecycle_rule {
-    id      = aws_athena_named_query.top_albums.name
-    prefix  = "${aws_athena_named_query.top_albums.name}/"
+    id      = aws_athena_named_query.create_view_top_albums.name
+    prefix  = "${aws_athena_named_query.create_view_top_albums.name}/"
+    enabled = true
+
+    expiration {
+      days = 30
+    }
+  }
+
+  lifecycle_rule {
+    id      = aws_athena_named_query.get_top_albums.name
+    prefix  = "${aws_athena_named_query.get_top_albums.name}/"
     enabled = true
 
     expiration {
