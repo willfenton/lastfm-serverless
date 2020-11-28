@@ -9,7 +9,7 @@ var vm = new Vue({
     el: "#vue-app",
     data: function () {
         return {
-		    albums_url: `https://1iiuugag3m.execute-api.us-east-1.amazonaws.com/topalbums?lastfm_username=${lastfmUsername}`,
+		    albums_url: `https://4ktouqkrr0.execute-api.us-east-1.amazonaws.com/top-albums?lastfm_username=${lastfmUsername}`,
             albums: [],
             modalAlbum: {}
         }
