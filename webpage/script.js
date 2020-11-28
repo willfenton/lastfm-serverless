@@ -1,9 +1,15 @@
+const urlParams = new URLSearchParams(window.location.search);
+var lastfmUsername = urlParams.get("lastfm_username");
+if (lastfmUsername == null) {
+    lastfmUsername = "willfenton14";
+}
+
 // VueJS
 var vm = new Vue({
     el: "#vue-app",
     data: function () {
         return {
-		    albums_url: "https://1iiuugag3m.execute-api.us-east-1.amazonaws.com/topalbums",
+		    albums_url: `https://1iiuugag3m.execute-api.us-east-1.amazonaws.com/topalbums?lastfm_username=${lastfmUsername}`,
             albums: [],
             modalAlbum: {}
         }

@@ -12,8 +12,10 @@ logger.setLevel(logging.INFO)
 def lambda_handler(event, context):
     logger.info(event)
 
-    bucket_name = "lastfm-serverless-data"
-    prefix = "lastfm_serverless_get_top_albums"
+    lastfm_username = event["queryStringParameters"]["lastfm_username"]
+
+    bucket_name = "lastfm-serverless-athena-output"
+    prefix = f"{lastfm_username}/top-albums/"
 
     s3 = boto3.resource("s3")
     bucket = s3.Bucket(name=bucket_name)

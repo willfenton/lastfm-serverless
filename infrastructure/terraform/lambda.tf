@@ -49,7 +49,7 @@ resource "aws_iam_policy" "lambda_policy" {
         "s3:PutObject",
         "s3:ListBucket"
       ],
-      "Resource": [ "${aws_s3_bucket.data_bucket.arn}", "${aws_s3_bucket.data_bucket.arn}/*" ]
+      "Resource": [ "${aws_s3_bucket.data_bucket.arn}", "${aws_s3_bucket.data_bucket.arn}/*", "${aws_s3_bucket.athena_bucket.arn}", "${aws_s3_bucket.athena_bucket.arn}/*" ]
     },
     {
       "Effect": "Allow",
@@ -57,6 +57,20 @@ resource "aws_iam_policy" "lambda_policy" {
         "lambda:InvokeFunction"
       ],
       "Resource": "arn:aws:lambda:*:*:*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "athena:StartQueryExecution"
+      ],
+      "Resource": "arn:aws:athena:*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "glue:GetTable"
+      ],
+      "Resource": "arn:aws:glue:*"
     }
   ]
 }
@@ -146,6 +160,32 @@ resource "aws_lambda_function" "get_all_scrobbles" {
     }
   }
 }
+
+resource "aws_cloudwatch_log_group" "query_athena" {
+  name              = "/aws/lambda/${aws_lambda_function.query_athena.function_name}"
+  retention_in_days = 14
+}
+
+resource "aws_lambda_function" "query_athena" {
+  function_name = "${var.project_name}-query-athena"
+  role          = aws_iam_role.lambda_role.arn
+
+  s3_bucket         = aws_s3_bucket_object.lambda_code.bucket
+  s3_key            = aws_s3_bucket_object.lambda_code.key
+  s3_object_version = aws_s3_bucket_object.lambda_code.version_id
+  source_code_hash  = "${filebase64sha256(aws_s3_bucket_object.lambda_code.source)}-${aws_iam_role.lambda_role.arn}"
+  handler           = "query_athena.lambda_handler"
+  runtime           = "python3.8"
+  timeout           = 900
+
+  environment {
+    variables = {
+      athena_database = aws_athena_database.database.name,
+      output_bucket   = aws_s3_bucket.athena_bucket.bucket
+    }
+  }
+}
+
 
 resource "aws_cloudwatch_log_group" "api_top_albums" {
   name              = "/aws/lambda/${aws_lambda_function.api_top_albums.function_name}"
