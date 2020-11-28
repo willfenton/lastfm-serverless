@@ -57,24 +57,16 @@ resource "aws_iam_policy" "lambda_policy" {
         "lambda:InvokeFunction"
       ],
       "Resource": "arn:aws:lambda:*:*:*"
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "athena:StartQueryExecution"
-      ],
-      "Resource": "arn:aws:athena:*"
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "glue:GetTable"
-      ],
-      "Resource": "arn:aws:glue:*"
     }
   ]
 }
 EOF
+}
+
+resource "aws_iam_policy_attachment" "lambda_athena_permissions" {
+  name       = "${var.project_name}-lambda-athena-permissions"
+  roles      = [aws_iam_role.lambda_role.name]
+  policy_arn = "arn:aws:iam::aws:policy/AmazonAthenaFullAccess"
 }
 
 resource "aws_iam_role_policy_attachment" "lambda_policy" {
@@ -181,7 +173,8 @@ resource "aws_lambda_function" "query_athena" {
   environment {
     variables = {
       athena_database = aws_athena_database.database.name,
-      output_bucket   = aws_s3_bucket.athena_bucket.bucket
+      output_bucket   = aws_s3_bucket.athena_bucket.bucket,
+      data_bucket     = aws_s3_bucket.data_bucket.bucket
     }
   }
 }

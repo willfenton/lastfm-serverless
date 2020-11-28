@@ -17,3 +17,8 @@ variable "lastfm_api_key" {
 // scrobble updates will be from midnight to midnight for the specified timezone
 variable "timezone" {
 }
+
+// sites that can use the API
+// https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin
+variable "cors_origins" {
+}

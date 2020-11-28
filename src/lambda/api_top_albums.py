@@ -15,7 +15,7 @@ def lambda_handler(event, context):
     lastfm_username = event["queryStringParameters"]["lastfm_username"]
 
     bucket_name = "lastfm-serverless-athena-output"
-    prefix = f"{lastfm_username}/top-albums/"
+    prefix = f"{lastfm_username}/get_top_albums/"
 
     s3 = boto3.resource("s3")
     bucket = s3.Bucket(name=bucket_name)

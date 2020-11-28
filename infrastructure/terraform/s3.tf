@@ -31,44 +31,4 @@ resource "aws_s3_bucket" "athena_bucket" {
 resource "aws_s3_bucket" "data_bucket" {
   bucket = "${var.project_name}-data"
   acl    = "private"
-
-  lifecycle_rule {
-    id      = aws_athena_named_query.create_table_scrobbles.name
-    prefix  = "${aws_athena_named_query.create_table_scrobbles.name}/"
-    enabled = true
-
-    expiration {
-      days = 30
-    }
-  }
-
-  lifecycle_rule {
-    id      = aws_athena_named_query.create_view_top_albums.name
-    prefix  = "${aws_athena_named_query.create_view_top_albums.name}/"
-    enabled = true
-
-    expiration {
-      days = 30
-    }
-  }
-
-  lifecycle_rule {
-    id      = aws_athena_named_query.get_top_albums.name
-    prefix  = "${aws_athena_named_query.get_top_albums.name}/"
-    enabled = true
-
-    expiration {
-      days = 30
-    }
-  }
-
-  lifecycle_rule {
-    id      = "unsaved_athena_queries"
-    prefix  = "Unsaved/"
-    enabled = true
-
-    expiration {
-      days = 30
-    }
-  }
 }
