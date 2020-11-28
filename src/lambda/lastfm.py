@@ -55,7 +55,7 @@ def get_page(api_key, username, page_number=1, from_uts=0, to_uts=10000000000, l
     return response_json
 
 
-def scrobbles_to_csv_string(page):
+def scrobbles_to_csv_string(page, artist_replacements, album_replacements, track_replacements):
     # string that the CSV writer can write to like a file
     csv_string = io.StringIO()
 
@@ -66,9 +66,20 @@ def scrobbles_to_csv_string(page):
         if "@attr" in scrobble and scrobble["@attr"]["nowplaying"] == "true":
             continue
 
-        track_name = scrobble["name"]
-        album_name = scrobble["album"]["#text"]
         artist_name = scrobble["artist"]["#text"]
+        for original, replacement in artist_replacements.items():
+            artist_name = artist_name.replace(original, replacement)
+        artist_name = artist_name.strip()
+
+        album_name = scrobble["album"]["#text"]
+        for original, replacement in album_replacements.items():
+            album_name = album_name.replace(original, replacement)
+        album_name = album_name.strip()
+
+        track_name = scrobble["name"]
+        for original, replacement in track_replacements.items():
+            track_name = track_name.replace(original, replacement)
+        track_name = track_name.strip()
 
         unix_timestamp = int(scrobble["date"]["uts"])
 

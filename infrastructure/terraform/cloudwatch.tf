@@ -8,8 +8,8 @@ resource "aws_cloudwatch_event_target" "daily_update" {
   rule      = aws_cloudwatch_event_rule.daily_update.name
   target_id = "lambda"
   arn       = aws_lambda_function.daily_update.arn
-  input     = jsonencode({
-    "lastfm_usernames"=var.lastfm_usernames
+  input = jsonencode({
+    "lastfm_usernames" = var.lastfm_usernames
   })
 }
 

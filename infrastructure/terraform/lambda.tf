@@ -93,9 +93,12 @@ resource "aws_lambda_function" "update_range" {
 
   environment {
     variables = {
-      aws_region  = var.aws_region,
-      secret_name = aws_secretsmanager_secret.api_key.name,
-      data_bucket = aws_s3_bucket.data_bucket.bucket
+      aws_region          = var.aws_region,
+      secret_name         = aws_secretsmanager_secret.api_key.name,
+      data_bucket         = aws_s3_bucket.data_bucket.bucket,
+      album_replacements  = jsonencode(var.album_replacements),
+      artist_replacements = jsonencode(var.artist_replacements),
+      track_replacements  = jsonencode(var.track_replacements)
     }
   }
 }

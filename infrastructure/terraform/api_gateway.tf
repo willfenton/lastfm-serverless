@@ -8,13 +8,13 @@ resource "aws_apigatewayv2_api" "http_api" {
 }
 
 resource "aws_cloudwatch_log_group" "api_logs" {
-  name = "/${aws_apigatewayv2_api.http_api.name}/logs"
+  name              = "/${aws_apigatewayv2_api.http_api.name}/logs"
   retention_in_days = 14
 }
 
 resource "aws_apigatewayv2_stage" "stage" {
-  api_id = aws_apigatewayv2_api.http_api.id
-  name   = "$default"
+  api_id      = aws_apigatewayv2_api.http_api.id
+  name        = "$default"
   auto_deploy = true
 
   access_log_settings {
@@ -50,10 +50,10 @@ resource "aws_apigatewayv2_integration" "get_top_albums_lambda" {
   api_id           = aws_apigatewayv2_api.http_api.id
   integration_type = "AWS_PROXY"
 
-  connection_type         = "INTERNET"
-  payload_format_version  = "2.0"
-  integration_method      = "POST"
-  integration_uri         = aws_lambda_function.api_top_albums.invoke_arn
+  connection_type        = "INTERNET"
+  payload_format_version = "2.0"
+  integration_method     = "POST"
+  integration_uri        = aws_lambda_function.api_top_albums.invoke_arn
 }
 
 resource "aws_lambda_permission" "lambda_permission" {
