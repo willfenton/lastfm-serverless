@@ -13,10 +13,35 @@ resource "aws_cloudwatch_event_target" "daily_update" {
   })
 }
 
-resource "aws_lambda_permission" "allow_cloudwatch_to_call_lambda" {
+resource "aws_lambda_permission" "cloudwatch_daily_update_lambda_permission" {
   statement_id  = "AllowExecutionFromCloudWatch"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.daily_update.function_name
   principal     = "events.amazonaws.com"
   source_arn    = aws_cloudwatch_event_rule.daily_update.arn
 }
+
+resource "aws_cloudwatch_event_rule" "daily_top_albums_query" {
+  name                = "${var.project_name}-daily-top-albums-query"
+  description         = "Triggers the athena query lambda every day at 7:15 AM UTC (12:15 AM MST)"
+  schedule_expression = "cron(15 7 * * ? *)"
+}
+
+resource "aws_cloudwatch_event_target" "daily_top_albums_query" {
+  rule      = aws_cloudwatch_event_rule.daily_top_albums_query.name
+  target_id = "lambda"
+  arn       = aws_lambda_function.query_athena.arn
+  input = jsonencode({
+    "lastfm_usernames" = var.lastfm_usernames,
+    "query"            = "get_top_albums"
+  })
+}
+
+resource "aws_lambda_permission" "cloudwatch_daily_top_albums_query_lambda_permission" {
+  statement_id  = "AllowExecutionFromCloudWatch"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.query_athena.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.daily_top_albums_query.arn
+}
+
