@@ -23,7 +23,8 @@ def split(a, n):
 def lambda_handler(event, context):
     logger.info(event)
 
-    username = os.environ["lastfm_user"]
+    lastfm_username = event["lastfm_username"]
+
     api_key = lastfm.get_api_key()
 
     # how many API requests to make at once
@@ -37,7 +38,7 @@ def lambda_handler(event, context):
     to_uts = int((now.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(seconds=1)).timestamp())
 
     # get # of scrobbles and calculate # of pages
-    page = lastfm.get_page(api_key, username, from_uts=from_uts, to_uts=to_uts, limit=1)
+    page = lastfm.get_page(api_key, lastfm_username, from_uts=from_uts, to_uts=to_uts, limit=1)
     num_scrobbles = int(page["recenttracks"]["@attr"]["total"])
     num_pages = math.ceil(num_scrobbles / 200)
     pages = list(split([i for i in range(1, num_pages + 1)], concurrency_cap))
@@ -49,7 +50,7 @@ def lambda_handler(event, context):
 
     # spawn concurrency_cap lambdas to get scrobbles
     for page_chunk in pages:
-        event = {"from_uts": from_uts, "to_uts": to_uts, "pages": page_chunk}
+        event = {"from_uts": from_uts, "to_uts": to_uts, "pages": page_chunk, "lastfm_username": lastfm_username}
         logger.info(event)
         response = lambda_client.invoke(
             FunctionName=update_lambda_name,

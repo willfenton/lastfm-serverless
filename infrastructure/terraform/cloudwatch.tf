@@ -8,9 +8,12 @@ resource "aws_cloudwatch_event_target" "daily_update" {
   rule      = aws_cloudwatch_event_rule.daily_update.name
   target_id = "lambda"
   arn       = aws_lambda_function.daily_update.arn
+  input     = jsonencode({
+    "lastfm_usernames"=var.lastfm_usernames
+  })
 }
 
-resource "aws_lambda_permission" "allow_cloudwatch_to_call_check_foo" {
+resource "aws_lambda_permission" "allow_cloudwatch_to_call_lambda" {
   statement_id  = "AllowExecutionFromCloudWatch"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.daily_update.function_name

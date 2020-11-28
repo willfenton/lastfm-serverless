@@ -88,7 +88,6 @@ resource "aws_lambda_function" "update_range" {
   environment {
     variables = {
       aws_region  = var.aws_region,
-      lastfm_user = var.lastfm_user,
       secret_name = aws_secretsmanager_secret.api_key.name,
       data_bucket = aws_s3_bucket.data_bucket.bucket
     }
@@ -143,7 +142,6 @@ resource "aws_lambda_function" "get_all_scrobbles" {
       aws_region         = var.aws_region,
       timezone           = var.timezone,
       update_lambda_name = aws_lambda_function.update_range.function_name
-      lastfm_user        = var.lastfm_user
       secret_name        = aws_secretsmanager_secret.api_key.name
     }
   }
@@ -165,14 +163,4 @@ resource "aws_lambda_function" "api_top_albums" {
   handler           = "api_top_albums.lambda_handler"
   runtime           = "python3.8"
   timeout           = 900
-
-//  environment {
-//    variables = {
-//      aws_region         = var.aws_region,
-//      timezone           = var.timezone,
-//      update_lambda_name = aws_lambda_function.update_range.function_name
-//      lastfm_user        = var.lastfm_user
-//      secret_name        = aws_secretsmanager_secret.api_key.name
-//    }
-//  }
 }

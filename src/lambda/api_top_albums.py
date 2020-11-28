@@ -1,6 +1,6 @@
-import csv
 import json
 import logging
+import csv
 from io import StringIO
 
 import boto3

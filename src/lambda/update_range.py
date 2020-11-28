@@ -14,8 +14,8 @@ def lambda_handler(event, context):
 
     from_uts = event["from_uts"]
     to_uts = event["to_uts"]
+    lastfm_username = event["lastfm_username"]
 
-    username = os.environ["lastfm_user"]
     s3_bucket = os.environ["data_bucket"]
     api_key = lastfm.get_api_key()
 
@@ -36,15 +36,15 @@ def lambda_handler(event, context):
     #     "to_uts": 1606201199
     # }
     else:
-        page = lastfm.get_page(api_key, username, from_uts=from_uts, to_uts=to_uts, limit=1)
+        page = lastfm.get_page(api_key, lastfm_username, from_uts=from_uts, to_uts=to_uts, limit=1)
         num_scrobbles = int(page["recenttracks"]["@attr"]["total"])
         num_pages = math.ceil(num_scrobbles / 200)
         pages = list(range(1, num_pages + 1))
 
     for page_number in pages:
-        page = lastfm.get_page(api_key, username, page_number, from_uts, to_uts)
+        page = lastfm.get_page(api_key, lastfm_username, page_number, from_uts, to_uts)
         csv = lastfm.scrobbles_to_csv_string(page)
-        s3_key = f"scrobbles/{from_uts}-{to_uts}-{page_number}.csv"
+        s3_key = f"{lastfm_username}/scrobbles/{from_uts}-{to_uts}-{page_number}.csv"
         s3.write_string_to_s3(s3_bucket, s3_key, csv)
 
         result["num_pages"] += 1

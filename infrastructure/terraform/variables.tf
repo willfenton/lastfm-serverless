@@ -8,7 +8,7 @@ variable "project_name" {
   default = "lastfm-serverless"
 }
 
-variable "lastfm_user" {
+variable "lastfm_usernames" {
 }
 
 variable "lastfm_api_key" {

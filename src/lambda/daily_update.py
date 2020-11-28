@@ -13,6 +13,8 @@ logger.setLevel(logging.INFO)
 def lambda_handler(event, context):
     logger.info(event)
 
+    lastfm_usernames = event["lastfm_usernames"]
+
     timezone = os.environ["timezone"]
     now = datetime.now(pytz.timezone(timezone))
 
@@ -23,20 +25,24 @@ def lambda_handler(event, context):
 
     logger.info(f"Time Range: {from_datetime.strftime('%c')} to {to_datetime.strftime('%c')}")
 
-    update_lambda_event = {
-        "from_uts": int(from_datetime.timestamp()),
-        "to_uts": int(to_datetime.timestamp()),
-    }
-
-    logger.info(update_lambda_event)
-
-    lambda_client = boto3.client("lambda")
     update_lambda_name = os.environ["update_lambda_name"]
+    lambda_client = boto3.client("lambda")
 
-    response = lambda_client.invoke(
-        FunctionName=update_lambda_name,
-        InvocationType="Event",
-        Payload=json.dumps(update_lambda_event),
-    )
+    for lastfm_username in lastfm_usernames:
+        update_lambda_event = {
+            "from_uts": int(from_datetime.timestamp()),
+            "to_uts": int(to_datetime.timestamp()),
+            "lastfm_username": lastfm_username,
+        }
+
+        logger.info(update_lambda_event)
+
+        response = lambda_client.invoke(
+            FunctionName=update_lambda_name,
+            InvocationType="Event",
+            Payload=json.dumps(update_lambda_event),
+        )
+
+        logger.info(response)
 
     return
