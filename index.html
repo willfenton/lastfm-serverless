@@ -26,8 +26,10 @@
 
     <!-- js -->
     <script src="webpage/script.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.11"></script>
+    <script src="webpage/papaparse.min.js"></script>
 
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.bundle.js"></script>
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
         integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
         crossorigin="anonymous"></script>
@@ -58,6 +60,7 @@
                         <p><b>Count: </b>{{ modalAlbum.album_count }}</p>
                         <p><b>First Listen: </b>{{ parseTimestamp(modalAlbum.first_uts) }}</p>
                         <p><b>Last Listen: </b>{{ parseTimestamp(modalAlbum.last_uts) }}</p>
+                        <canvas id="canvas"></canvas>
                     </div>
                 </div>
             </div>

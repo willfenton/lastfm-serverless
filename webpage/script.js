@@ -10,25 +10,57 @@ var vm = new Vue({
     data: function () {
         return {
 		    albums_url: `https://4ktouqkrr0.execute-api.us-east-1.amazonaws.com/top-albums?lastfm_username=${lastfmUsername}`,
+            months_url: `https://4ktouqkrr0.execute-api.us-east-1.amazonaws.com/month-counts?lastfm_username=${lastfmUsername}`,
             albums: [],
+            month_data: [],
             modalAlbum: {}
         }
     },
     created() {
-        fetch(this.albums_url)
-            .then(response => response.json())
-            .then(json => {
-                this.albums = json.albums.slice(0, 200);
+        Papa.parse(this.albums_url, {
+            download: true,
+            header: true,
+            skipEmptyLines: true,
+            complete: (results) => {
+                this.albums = results.data.slice(0, 200);
                 if (!window.mobilecheck()) {
                     $(function () {
                         $('[data-toggle="tooltip"]').tooltip({ boundary: 'window' })
                     })
                 }
-            });
+            }
+        });
+        Papa.parse(this.months_url, {
+            download: true,
+            header: true,
+            skipEmptyLines: true,
+            complete: (results) => {
+                this.month_data = results.data;
+            }
+        });
     },
     methods: {
         setModalData: function (album) {
             this.modalAlbum = album;
+
+            const data = [];
+
+            chart.data.datasets = [];
+            for (const element of this.month_data) {
+                if (element.album_name === album.album_name && element.artist_name === album.artist_name) {
+                    data.push({
+                        x: new Date(Number.parseInt(element["year"]), Number.parseInt(element["month"]) - 1, 1, 0, 0, 0, 0),
+                        y: element["count"]
+                    });
+                }
+            }
+            console.log(data);
+            chart.data.datasets.push({
+                label: "Scrobbles",
+                data: data,
+                backgroundColor: "#9c9c9c"
+            })
+            chart.update();
         },
         parseTimestamp: function (timestamp) {
             let date = new Date(timestamp * 1000);
@@ -36,6 +68,33 @@ var vm = new Vue({
         }
     }
 })
+
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+const chart = new Chart(ctx, {
+    type: 'bar',
+    datasets: [],
+    options: {
+        scales: {
+            xAxes: [{
+                type: 'time',
+                time: {
+                    unit: 'month',
+                    tooltipFormat: 'MMM YYYY'
+                },
+                offset: true
+            }],
+            yAxes: [{
+                ticks: {
+                    beginAtZero: true
+                }
+            }]
+        },
+        legend: {
+            display: false
+        }
+    }
+});
 
 window.mobilecheck = function () {
     var check = false;
