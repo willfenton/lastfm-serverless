@@ -21,27 +21,26 @@ resource "aws_lambda_permission" "cloudwatch_daily_update_lambda_permission" {
   source_arn    = aws_cloudwatch_event_rule.daily_update.arn
 }
 
-resource "aws_cloudwatch_event_rule" "daily_top_albums_query" {
-  name                = "${var.project_name}-daily-top-albums-query"
+resource "aws_cloudwatch_event_rule" "daily_queries" {
+  name                = "${var.project_name}-daily-queries"
   description         = "Triggers the athena query lambda every day at 7:15 AM UTC (12:15 AM MST)"
   schedule_expression = "cron(15 7 * * ? *)"
 }
 
-resource "aws_cloudwatch_event_target" "daily_top_albums_query" {
-  rule      = aws_cloudwatch_event_rule.daily_top_albums_query.name
+resource "aws_cloudwatch_event_target" "daily_queries" {
+  rule      = aws_cloudwatch_event_rule.daily_queries.name
   target_id = "lambda"
   arn       = aws_lambda_function.query_athena.arn
   input = jsonencode({
     "lastfm_usernames" = var.lastfm_usernames,
-    "query"            = "get_top_albums"
+    "queries"          = ["get_top_albums", "get_month_counts"]
   })
 }
 
-resource "aws_lambda_permission" "cloudwatch_daily_top_albums_query_lambda_permission" {
+resource "aws_lambda_permission" "cloudwatch_daily_queries_lambda_permission" {
   statement_id  = "AllowExecutionFromCloudWatch"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.query_athena.function_name
   principal     = "events.amazonaws.com"
-  source_arn    = aws_cloudwatch_event_rule.daily_top_albums_query.arn
+  source_arn    = aws_cloudwatch_event_rule.daily_queries.arn
 }
-

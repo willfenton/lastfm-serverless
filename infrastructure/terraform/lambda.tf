@@ -200,3 +200,21 @@ resource "aws_lambda_function" "api_top_albums" {
   runtime           = "python3.8"
   timeout           = 900
 }
+
+resource "aws_cloudwatch_log_group" "api_month_counts" {
+  name              = "/aws/lambda/${aws_lambda_function.api_month_counts.function_name}"
+  retention_in_days = 14
+}
+
+resource "aws_lambda_function" "api_month_counts" {
+  function_name = "${var.project_name}-api-month-counts"
+  role          = aws_iam_role.lambda_role.arn
+
+  s3_bucket         = aws_s3_bucket_object.lambda_code.bucket
+  s3_key            = aws_s3_bucket_object.lambda_code.key
+  s3_object_version = aws_s3_bucket_object.lambda_code.version_id
+  source_code_hash  = "${filebase64sha256(aws_s3_bucket_object.lambda_code.source)}-${aws_iam_role.lambda_role.arn}"
+  handler           = "api_month_counts.lambda_handler"
+  runtime           = "python3.8"
+  timeout           = 900
+}

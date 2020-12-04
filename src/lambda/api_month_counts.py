@@ -1,9 +1,11 @@
+import csv
+import datetime
 import json
 import logging
-import csv
 from io import StringIO
 
 import boto3
+import pytz
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -15,7 +17,7 @@ def lambda_handler(event, context):
     lastfm_username = event["queryStringParameters"]["lastfm_username"]
 
     bucket_name = "lastfm-serverless-athena-output"
-    prefix = f"{lastfm_username}/get_top_albums/"
+    prefix = f"{lastfm_username}/get_month_counts/"
 
     s3 = boto3.resource("s3")
     bucket = s3.Bucket(name=bucket_name)
@@ -30,11 +32,11 @@ def lambda_handler(event, context):
 
     logger.info(last_added.key)
 
-    top_albums_csv = last_added.get()["Body"].read().decode("utf-8")
+    month_counts_csv = last_added.get()["Body"].read().decode("utf-8")
 
     return {
         "headers": {"Content-Type": "text/csv"},
         "isBase64Encoded": False,
         "statusCode": 200,
-        "body": top_albums_csv,
+        "body": month_counts_csv,
     }

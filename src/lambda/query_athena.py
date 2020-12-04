@@ -11,6 +11,15 @@ SELECT *
 FROM top_albums_{lastfm_username}
 WHERE album_count >= 20 AND num_tracks > 1
 ORDER BY album_count DESC
+LIMIT 200
+""",
+    "get_month_counts": r"""
+SELECT COUNT(*) as count, MONTH(FROM_UNIXTIME(unix_timestamp)) as month, YEAR(FROM_UNIXTIME(unix_timestamp)) as year, album_name, artist_name
+FROM scrobbles_{lastfm_username}
+WHERE album_name IN (
+  SELECT album_name FROM top_albums_{lastfm_username} WHERE album_count >= 20 AND num_tracks > 1 ORDER BY album_count DESC LIMIT 250
+)
+GROUP BY album_name, artist_name, MONTH(FROM_UNIXTIME(unix_timestamp)), YEAR(FROM_UNIXTIME(unix_timestamp))
 """,
     "create_table": r"""
 CREATE EXTERNAL TABLE IF NOT EXISTS {database_name}.scrobbles_{lastfm_username} (
@@ -55,8 +64,8 @@ WHERE rank = 1
 def lambda_handler(event, context):
     logger.info(event)
 
+    queries = event["queries"]
     lastfm_usernames = event["lastfm_usernames"]
-    sql_query = sql_queries[event["query"]]
 
     athena_database = os.environ["athena_database"]
     data_bucket = os.environ["data_bucket"]
@@ -64,28 +73,31 @@ def lambda_handler(event, context):
 
     athena_client = boto3.client("athena")
 
-    for lastfm_username in lastfm_usernames:
-        output_location = f"s3://{output_bucket}/{lastfm_username}/{event['query']}/"
+    for query in queries:
+        sql_query = sql_queries[query]
 
-        sql_query_string = (
-            sql_query.replace("{lastfm_username}", lastfm_username)
-            .replace("{database_name}", athena_database)
-            .replace("{data_bucket}", data_bucket)
-            .strip("\n")
-        )
+        for lastfm_username in lastfm_usernames:
+            output_location = f"s3://{output_bucket}/{lastfm_username}/{query}/"
 
-        logger.info(f"User: {lastfm_username}")
-        logger.info(f"Output Location: {output_location}")
-        logger.info(f"Query String: {sql_query_string}")
+            sql_query_string = (
+                sql_query.replace("{lastfm_username}", lastfm_username)
+                .replace("{database_name}", athena_database)
+                .replace("{data_bucket}", data_bucket)
+                .strip("\n")
+            )
 
-        response = athena_client.start_query_execution(
-            QueryString=sql_query_string,
-            QueryExecutionContext={"Database": athena_database},
-            ResultConfiguration={"OutputLocation": output_location},
-        )
+            logger.info(f"User: {lastfm_username}")
+            logger.info(f"Output Location: {output_location}")
+            logger.info(f"Query String: {sql_query_string}")
 
-        logger.info(response)
+            response = athena_client.start_query_execution(
+                QueryString=sql_query_string,
+                QueryExecutionContext={"Database": athena_database},
+                ResultConfiguration={"OutputLocation": output_location},
+            )
 
-        query_execution_id = response["QueryExecutionId"]
+            logger.info(response)
+
+            query_execution_id = response["QueryExecutionId"]
 
     return

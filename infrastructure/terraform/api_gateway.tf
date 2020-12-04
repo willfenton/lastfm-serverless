@@ -56,13 +56,36 @@ resource "aws_apigatewayv2_integration" "get_top_albums_lambda" {
   integration_uri        = aws_lambda_function.api_top_albums.invoke_arn
 }
 
-resource "aws_lambda_permission" "lambda_permission" {
+resource "aws_lambda_permission" "top_albums_lambda_permission" {
   statement_id  = "allow_api_to_invoke_lambda"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.api_top_albums.arn
   principal     = "apigateway.amazonaws.com"
 
-  # The /*/*/* part allows invocation from any stage, method and resource path
-  # within API Gateway REST API.
+  source_arn = "${aws_apigatewayv2_api.http_api.execution_arn}/*/*/*"
+}
+
+resource "aws_apigatewayv2_route" "month_counts" {
+  api_id    = aws_apigatewayv2_api.http_api.id
+  route_key = "GET /month-counts"
+  target    = "integrations/${aws_apigatewayv2_integration.get_month_counts_lambda.id}"
+}
+
+resource "aws_apigatewayv2_integration" "get_month_counts_lambda" {
+  api_id           = aws_apigatewayv2_api.http_api.id
+  integration_type = "AWS_PROXY"
+
+  connection_type        = "INTERNET"
+  payload_format_version = "2.0"
+  integration_method     = "POST"
+  integration_uri        = aws_lambda_function.api_month_counts.invoke_arn
+}
+
+resource "aws_lambda_permission" "month_counts_lambda_permission" {
+  statement_id  = "allow_api_to_invoke_lambda"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.api_month_counts.arn
+  principal     = "apigateway.amazonaws.com"
+
   source_arn = "${aws_apigatewayv2_api.http_api.execution_arn}/*/*/*"
 }
