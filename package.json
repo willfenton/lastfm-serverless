@@ -5,7 +5,9 @@
     "private": true,
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "build": "webpack"
+        "build": "webpack",
+        "dev": "webpack serve",
+        "deploy": "gh-pages -d dist"
     },
     "repository": {
         "type": "git",
@@ -19,9 +21,11 @@
     "homepage": "https://github.com/willfenton/lastfm-serverless#readme",
     "devDependencies": {
         "@types/bootstrap": "^5.1.5",
+        "@types/lodash": "^4.14.173",
         "@types/luxon": "^2.0.4",
         "@types/papaparse": "^5.2.6",
         "css-loader": "^6.3.0",
+        "gh-pages": "^3.2.3",
         "style-loader": "^3.2.1",
         "ts-loader": "^9.2.5",
         "typescript": "^4.4.3",
@@ -33,6 +37,7 @@
         "bootstrap": "^5.1.1",
         "chart.js": "^3.5.1",
         "chartjs-adapter-luxon": "^1.1.0",
+        "lodash": "^4.17.21",
         "luxon": "^2.0.2",
         "papaparse": "^5.3.1",
         "vue": "^2.6.14"

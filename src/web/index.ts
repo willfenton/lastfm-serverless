@@ -5,13 +5,12 @@ import {DateTime} from 'luxon'
 import * as bootstrap from 'bootstrap'
 import {Chart, ChartDataset, registerables} from 'chart.js';
 import 'chartjs-adapter-luxon';
-
-Chart.register(...registerables);
-
 import {Album, CsvScrobble, MusicData} from './music'
 
 import 'bootstrap/dist/css/bootstrap.css'
 import './style.css'
+
+Chart.register(...registerables);
 
 
 // so obscenely large that Vue struggles hard with it, so keep it outside of the Vue app
@@ -33,7 +32,10 @@ const vm = new Vue({
             skipEmptyLines: true,
             complete: (results) => {
                 const scrobbles = results.data as Array<CsvScrobble>
+                console.log('Parsed CSV', scrobbles)
+
                 musicData.addScrobbles(scrobbles)
+                console.log('Processed scrobbles', musicData)
 
                 // Music data is outside of Vue's data so it can't auto-update
                 this.$forceUpdate()
@@ -62,8 +64,10 @@ const vm = new Vue({
             modalChart.data.datasets = []
             const dataset: ChartDataset = {
                 label: 'Scrobbles',
-                data: album.getScrobblesOverTimeChartData(),
-                backgroundColor: '#9c9c9c'
+                data: album.getScrobblesPerMonthChartData(),
+                backgroundColor: '#9c9c9c',
+                barPercentage: 1.0,
+                categoryPercentage: 0.9
             }
             // @ts-ignore
             modalChart.data.datasets.push(dataset)
@@ -74,20 +78,22 @@ const vm = new Vue({
 
 const canvas = document.getElementById('canvas') as HTMLCanvasElement
 const modalChart = new Chart(canvas.getContext('2d'), {
-    type: 'line',
+    type: 'bar',
     data: {
         datasets: []
     },
     options: {
+        responsive: true,
         plugins: {
             title: {
-                text: 'Scrobbles over time',
+                text: 'Scrobbles per month',
                 display: true
             }
         },
         scales: {
             x: {
                 type: 'time',
+                max: DateTime.now().toMillis(),
                 time: {
                     unit: 'month',
                     // Luxon format string
@@ -95,10 +101,7 @@ const modalChart = new Chart(canvas.getContext('2d'), {
                 },
                 title: {
                     display: true,
-                    text: 'Date'
-                },
-                ticks: {
-                    align: 'start'
+                    text: 'Month'
                 }
             },
             y: {

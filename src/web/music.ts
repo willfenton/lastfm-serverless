@@ -1,6 +1,7 @@
 import {DateTime} from 'luxon'
 import {ScatterDataPoint} from 'chart.js';
 import 'chartjs-adapter-luxon';
+import {groupBy} from 'lodash';
 
 
 export interface CsvScrobble {
@@ -130,22 +131,31 @@ export class Album {
         this.scrobbles = 0
     }
 
-    getAllTimestampsSorted(): Array<DateTime> {
+    getAllTimestamps(): Array<DateTime> {
+        // combine timestamp arrays from all tracks
         return this.tracks
-            // map/reduce is to combine timestamp arrays from all tracks
             .map((track) => track.timestamps)
             .reduce((prev, current) => prev.concat(current))
+    }
+
+    getAllTimestampsSorted(): Array<DateTime> {
+        return this.getAllTimestamps()
             .sort((a, b) => a.toMillis() - b.toMillis())
     }
 
-    // TODO
-    getScrobblesOverTimeChartData(): Array<ScatterDataPoint> {
-        const data = []
-        data.push({
-            x: DateTime.now().toMillis(),
-            y: 0
+    getScrobblesPerMonthChartData(): Array<ScatterDataPoint> {
+        const timestamps = this.getAllTimestampsSorted()
+        const timestampsByMonth = groupBy(timestamps, (timestamp) => {
+            return `${timestamp.year}:${timestamp.month}`
         })
-        return data
+
+        return Object.values(timestampsByMonth).map((timestamps) => {
+            const dt = timestamps[0].set({day: 1, hour: 0, minute: 0, second: 0, millisecond: 0})
+            return {
+                x: dt.toMillis(),
+                y: timestamps.length
+            }
+        })
     }
 }
 
