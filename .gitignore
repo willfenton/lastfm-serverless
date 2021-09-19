@@ -1,6 +1,6 @@
 build/
-.idea
 ignore/
+node_modules
 
 
 # Byte-compiled / optimized / DLL ignore
