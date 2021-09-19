@@ -12,45 +12,49 @@
     <title>Top Albums</title>
 
     <!-- icons -->
-    <link rel="icon" type="image/png" sizes="96x96" href="./favicon/favicon-96x96.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="./favicon/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="./favicon/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="img/favicon/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="img/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="img/favicon/favicon-16x16.png">
 
     <script defer src="./bundle.js"></script>
 </head>
 <body class="no-scrollbar">
-    <div id="vue-app" class="no-scrollbar">
-        <!-- Modal -->
-        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="exampleModalLabel">{{ modalAlbum.artistName }} - {{ modalAlbum.albumName }}</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <img class="modal-art no-padding no-margin" v-bind:src="modalAlbum.albumArtUrl">
-                        <p><b>Album: </b>{{ modalAlbum.albumName }}</p>
-                        <p><b>Artist: </b>{{ modalAlbum.artistName }}</p>
-                        <p><b>Top Track: </b>{{ modalTopTrack.trackName }}</p>
-                        <p><b>Scrobbles: </b>{{ modalAlbum.scrobbles }}</p>
-                        <p><b>First Scrobble: </b>{{ modalAlbumFirstTimestamp }}</p>
-                        <p><b>Last Scrobble: </b>{{ modalAlbumLastTimestamp }}</p>
-                        <canvas id="canvas" width="300px" height="300px"></canvas>
-                    </div>
+<div id="vue-app" class="no-scrollbar">
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">{{ modalAlbum.artistName }} - {{
+                            modalAlbum.albumName
+                        }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <img class="modal-art no-padding no-margin" v-bind:src="modalAlbum.albumArtUrl"
+                         onerror="if (this.src !== 'img/missing.png') this.src = 'img/missing.png';">
+                    <p><b>Album: </b>{{ modalAlbum.albumName }}</p>
+                    <p><b>Artist: </b>{{ modalAlbum.artistName }}</p>
+                    <p><b>Top Track: </b>{{ modalTopTrack.trackName }}</p>
+                    <p><b>Scrobbles: </b>{{ modalAlbum.scrobbles }}</p>
+                    <p><b>First Scrobble: </b>{{ modalAlbumFirstTimestamp }}</p>
+                    <p><b>Last Scrobble: </b>{{ modalAlbumLastTimestamp }}</p>
+                    <canvas id="canvas" width="300px" height="300px"></canvas>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Albums -->
-        <div class="albums">
+    <!-- Albums -->
+    <div class="albums">
                 <span v-for="album in getTopAlbums(200)" data-bs-toggle="modal" data-bs-target="#exampleModal"
                       v-on:click="setModalData(album)">
                     <img class="album-art no-padding no-margin" v-bind:src="album.albumArtUrl" data-bs-toggle="tooltip"
                          data-bs-placement="top" data-bs-offset="0, 15%"
-                         v-bind:title="`${album.artistName} - ${album.albumName}`">
+                         v-bind:title="`${album.artistName} - ${album.albumName}`"
+                         onerror="if (this.src !== 'img/missing.png') this.src = 'img/missing.png';">
                 </span>
-        </div>
     </div>
+</div>
 </body>
 </html>
