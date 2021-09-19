@@ -116,11 +116,13 @@ const modalChart = new Chart(canvas.getContext('2d'), {
 })
 
 const loadTooltips = () => {
-    // TODO: what even is this...
-    []
-        .slice
-        .call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-        .map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl)
-        })
+    const isMobile = window.matchMedia('only screen and (max-width: 760px)').matches
+    if (!isMobile) {
+        []
+            .slice
+            .call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            .map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            })
+    }
 }
