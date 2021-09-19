@@ -1,6 +1,8 @@
 build/
-.idea
 ignore/
+node_modules
+#dist/
+dist/bundle*
 
 
 # Byte-compiled / optimized / DLL ignore
@@ -15,7 +17,6 @@ __pycache__/
 .Python
 build/
 develop-eggs/
-dist/
 downloads/
 eggs/
 .eggs/

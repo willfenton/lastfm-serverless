@@ -6,7 +6,14 @@
       <excludeFolder url="file://$MODULE_DIR$/build" />
       <excludeFolder url="file://$MODULE_DIR$/infrastructure/terraform/.terraform/providers" />
     </content>
+    <content url="file://$MODULE_DIR$/dist" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="PapaParse" level="application" />
+    <orderEntry type="library" name="Chart.js" level="application" />
+    <orderEntry type="library" name="jquery-3.2.1.slim" level="application" />
+    <orderEntry type="library" name="popper.js" level="application" />
+    <orderEntry type="library" name="luxon" level="application" />
+    <orderEntry type="library" name="chartjs-adapter-luxon" level="application" />
   </component>
 </module>
