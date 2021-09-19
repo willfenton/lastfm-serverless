@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="Will Fenton">
     <meta name="description"
-        content="A collage of my most listened to albums (since I started tracking it using last.fm March 2018)">
+          content="A collage of my most listened to albums (since I started tracking it using last.fm March 2018)">
 
     <title>Top Albums</title>
 
@@ -21,62 +21,67 @@
     <!-- css -->
     <link rel="stylesheet" href="webpage/style.css">
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+          integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" crossorigin="anonymous"> -->
 
     <!-- js -->
+    <script src="webpage/utils.js"></script>
     <script src="webpage/script.js" defer></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.11"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.bundle.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.min.js"
+            integrity="sha512-Wt1bJGtlnMtGP0dqNFH1xlkLBNpEodaiQ8ZN5JLA5wpc1sUlk/O5uuOMNgvzddzkpvZ9GLyYNa8w2s7rqiTk5Q=="
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@2.0.2/build/global/luxon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.1.0/dist/chartjs-adapter-luxon.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
-        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
-        crossorigin="anonymous"></script>
+            integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+            crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
-        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
-        crossorigin="anonymous"></script>
+            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
-        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
-        crossorigin="anonymous"></script>
+            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+            crossorigin="anonymous"></script>
 </head>
 
 <body>
-    <!-- {% raw %} -->
-    <div id="vue-app">
-        <!-- Modal -->
-        <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-            aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-body">
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                        <img class="modal-art no-padding no-margin" v-bind:src="modalAlbum.album_art_url">
-                        <p><b>Album: </b>{{ modalAlbum.album_name }}</p>
-                        <p><b>Artist: </b>{{ modalAlbum.artist_name }}</p>
-                        <p><b>Top Track: </b>{{ modalAlbum.track_name }}</p>
-                        <p><b>Count: </b>{{ modalAlbum.album_count }}</p>
-                        <p><b>First Listen: </b>{{ parseTimestamp(modalAlbum.first_uts) }}</p>
-                        <p><b>Last Listen: </b>{{ parseTimestamp(modalAlbum.last_uts) }}</p>
-                        <canvas id="canvas"></canvas>
-                    </div>
+<!-- {% raw %} -->
+<div id="vue-app">
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <img class="modal-art no-padding no-margin" v-bind:src="modalAlbum.albumArtUrl">
+                    <p><b>Album: </b>{{ modalAlbum.albumName }}</p>
+                    <p><b>Artist: </b>{{ modalAlbum.artistName }}</p>
+                    <p><b>Top Track: </b>{{ modalAlbum.topTrack }}</p>
+                    <p><b>Scrobbles: </b>{{ modalAlbum.scrobbles }}</p>
+                    <p><b>First Scrobble: </b>{{ parseTimestamp(modalAlbum.firstTimestamp) }}</p>
+                    <p><b>Last Scrobble: </b>{{ parseTimestamp(modalAlbum.lastTimestamp) }}</p>
+                    <canvas id="canvas" width="300px" height="300px"></canvas>
                 </div>
             </div>
         </div>
-
-        <!-- Albums -->
-        <div class="albums">
-            <span v-for="album in albums" data-toggle="modal" data-target="#exampleModal"
-                v-on:click="setModalData(album)">
-                <img class="album-art no-padding no-margin" v-bind:src="album.album_art_url" data-toggle="tooltip"
-                    data-placement="top" data-offset="0, 10%"
-                    v-bind:title="`${album.artist_name} - ${album.album_name}`">
-            </span>
-        </div>
     </div>
-    <!-- {% endraw %} -->
+
+    <!-- Albums -->
+    <div class="albums">
+            <span v-for="album in albums" data-toggle="modal" data-target="#exampleModal"
+                  v-on:click="setModalData(album)">
+                <img class="album-art no-padding no-margin" v-bind:src="album.albumArtUrl" data-toggle="tooltip"
+                     data-placement="top" data-offset="0, 10%"
+                     v-bind:title="`${album.artistName} - ${album.albumName}`">
+            </span>
+    </div>
+</div>
+<!-- {% endraw %} -->
 </body>
 
 </html>
