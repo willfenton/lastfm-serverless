@@ -49,7 +49,7 @@ resource "aws_iam_policy" "lambda_policy" {
         "s3:PutObject",
         "s3:ListBucket"
       ],
-      "Resource": [ "${aws_s3_bucket.data_bucket.arn}", "${aws_s3_bucket.data_bucket.arn}/*", "${aws_s3_bucket.athena_bucket.arn}", "${aws_s3_bucket.athena_bucket.arn}/*" ]
+      "Resource": [ "${aws_s3_bucket.data_bucket.arn}", "${aws_s3_bucket.data_bucket.arn}/*", "${aws_s3_bucket.athena_bucket.arn}", "${aws_s3_bucket.athena_bucket.arn}/*", "${aws_s3_bucket.public_bucket.arn}", "${aws_s3_bucket.public_bucket.arn}/*" ]
     },
     {
       "Effect": "Allow",
@@ -93,12 +93,13 @@ resource "aws_lambda_function" "update_range" {
 
   environment {
     variables = {
-      aws_region          = var.aws_region,
-      secret_name         = aws_secretsmanager_secret.api_key.name,
-      data_bucket         = aws_s3_bucket.data_bucket.bucket,
-      album_replacements  = jsonencode(var.album_replacements),
-      artist_replacements = jsonencode(var.artist_replacements),
-      track_replacements  = jsonencode(var.track_replacements)
+      aws_region  = var.aws_region,
+      secret_name = aws_secretsmanager_secret.api_key.name,
+      data_bucket = aws_s3_bucket.data_bucket.bucket,
+      // TODO get rid of these
+      album_replacements  = jsonencode({}),
+      artist_replacements = jsonencode({}),
+      track_replacements  = jsonencode({})
     }
   }
 }
@@ -178,43 +179,7 @@ resource "aws_lambda_function" "query_athena" {
       athena_database = aws_athena_database.database.name,
       output_bucket   = aws_s3_bucket.athena_bucket.bucket,
       data_bucket     = aws_s3_bucket.data_bucket.bucket
+      public_bucket   = aws_s3_bucket.public_bucket.bucket
     }
   }
-}
-
-
-resource "aws_cloudwatch_log_group" "api_top_albums" {
-  name              = "/aws/lambda/${aws_lambda_function.api_top_albums.function_name}"
-  retention_in_days = 14
-}
-
-resource "aws_lambda_function" "api_top_albums" {
-  function_name = "${var.project_name}-api-top-albums"
-  role          = aws_iam_role.lambda_role.arn
-
-  s3_bucket         = aws_s3_bucket_object.lambda_code.bucket
-  s3_key            = aws_s3_bucket_object.lambda_code.key
-  s3_object_version = aws_s3_bucket_object.lambda_code.version_id
-  source_code_hash  = "${filebase64sha256(aws_s3_bucket_object.lambda_code.source)}-${aws_iam_role.lambda_role.arn}"
-  handler           = "api_top_albums.lambda_handler"
-  runtime           = "python3.8"
-  timeout           = 900
-}
-
-resource "aws_cloudwatch_log_group" "api_month_counts" {
-  name              = "/aws/lambda/${aws_lambda_function.api_month_counts.function_name}"
-  retention_in_days = 14
-}
-
-resource "aws_lambda_function" "api_month_counts" {
-  function_name = "${var.project_name}-api-month-counts"
-  role          = aws_iam_role.lambda_role.arn
-
-  s3_bucket         = aws_s3_bucket_object.lambda_code.bucket
-  s3_key            = aws_s3_bucket_object.lambda_code.key
-  s3_object_version = aws_s3_bucket_object.lambda_code.version_id
-  source_code_hash  = "${filebase64sha256(aws_s3_bucket_object.lambda_code.source)}-${aws_iam_role.lambda_role.arn}"
-  handler           = "api_month_counts.lambda_handler"
-  runtime           = "python3.8"
-  timeout           = 900
 }

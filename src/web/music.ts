@@ -1,7 +1,8 @@
 import {DateTime} from 'luxon'
-import {ScatterDataPoint} from 'chart.js';
-import 'chartjs-adapter-luxon';
-import {groupBy} from 'lodash';
+import {ScatterDataPoint} from 'chart.js'
+import 'chartjs-adapter-luxon'
+import {groupBy} from 'lodash'
+import {artistReplacements, albumReplacements, variousArtistAlbums} from './config'
 
 
 export interface CsvScrobble {
@@ -56,9 +57,33 @@ export class MusicData {
     }
 
     private addScrobble(scrobble: CsvScrobble): void {
-        const artistKey = scrobble.artist_name
-        const albumKey = `${scrobble.artist_name}:${scrobble.album_name}`
-        const trackKey = `${scrobble.artist_name}:${scrobble.album_name}:${scrobble.track_name}`
+        // remove stuff like '(Deluxe)', '(2014 Remaster)'
+        scrobble.artist_name = scrobble.artist_name.replace(RegExp('(\\(.*\\))'), '').trim()
+        scrobble.album_name = scrobble.album_name.replace(RegExp('(\\(.*\\))'), '').trim()
+        scrobble.track_name = scrobble.track_name.replace(RegExp('(\\(.*\\))'), '').trim()
+
+        if (variousArtistAlbums.includes(scrobble.album_name.toLowerCase())) {
+            scrobble.artist_name = 'Various Artists'
+        }
+
+        let artistName = scrobble.artist_name.toLowerCase()
+        let albumName = scrobble.album_name.toLowerCase()
+        let trackName = scrobble.track_name.toLowerCase()
+
+        artistReplacements.forEach(({original, replacement}) => {
+            artistName = artistName.replace(original, replacement)
+        })
+        albumReplacements.forEach(({original, replacement}) => {
+            albumName = albumName.replace(original, replacement)
+        })
+
+        artistName = artistName.trim()
+        albumName = albumName.trim()
+        trackName = trackName.trim()
+
+        const artistKey = artistName
+        const albumKey = `${artistKey}:${albumName}`
+        const trackKey = `${albumKey}:${trackName}`
 
         let artist: Artist
         if (this.artistMap.has(artistKey)) {

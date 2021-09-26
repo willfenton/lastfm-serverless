@@ -3,15 +3,21 @@ import * as Papa from 'papaparse'
 import {DateTime} from 'luxon'
 // @ts-ignore
 import * as bootstrap from 'bootstrap'
-import {Chart, ChartDataset, registerables} from 'chart.js';
-import 'chartjs-adapter-luxon';
+import {Chart, ChartDataset, registerables} from 'chart.js'
+import 'chartjs-adapter-luxon'
 import {Album, CsvScrobble, MusicData} from './music'
 
 import 'bootstrap/dist/css/bootstrap.css'
 import './style.css'
 
-Chart.register(...registerables);
+Chart.register(...registerables)
 
+
+const urlParams = new URLSearchParams(window.location.search)
+let username = urlParams.get('username')
+if (username == null) {
+    username = 'willfenton14'
+}
 
 // so obscenely large that Vue struggles hard with it, so keep it outside of the Vue app
 let musicData = new MusicData()
@@ -19,7 +25,8 @@ let musicData = new MusicData()
 const vm = new Vue({
     el: '#vue-app',
     data: {
-        dataUrl: 'https://lastfm-serverless-athena-output.s3.amazonaws.com/willfenton14/get_all/b1535d1d-84be-4a2f-bacd-c08a7a2287d7.csv',
+        dataUrl: `https://lastfm-serverless-public.s3.amazonaws.com/${username}/get_all_scrobbles/data.csv`,
+        // dataUrl: 'data.csv',
         modalAlbum: {},
         modalTopTrack: {},
         modalAlbumFirstTimestamp: {},

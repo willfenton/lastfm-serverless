@@ -33,7 +33,7 @@ resource "aws_cloudwatch_event_target" "daily_queries" {
   arn       = aws_lambda_function.query_athena.arn
   input = jsonencode({
     "lastfm_usernames" = var.lastfm_usernames,
-    "queries"          = ["get_top_albums", "get_month_counts"]
+    "queries"          = ["get_all_scrobbles"]
   })
 }
 
