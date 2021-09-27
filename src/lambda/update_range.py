@@ -1,9 +1,7 @@
+import gzip
 import logging
 import math
 import os
-import json
-import gzip
-from io import BytesIO
 
 import lastfm
 import s3
@@ -25,10 +23,6 @@ def lambda_handler(event, context):
 
     s3_bucket = os.environ["data_bucket"]
     api_key = lastfm.get_api_key()
-
-    artist_replacements = json.loads(os.environ["artist_replacements"])
-    album_replacements = json.loads(os.environ["album_replacements"])
-    track_replacements = json.loads(os.environ["track_replacements"])
 
     result = {"num_pages": 0, "s3_objects_written": []}
 
@@ -54,7 +48,7 @@ def lambda_handler(event, context):
 
     for page_number in pages:
         page = lastfm.get_page(api_key, lastfm_username, page_number, from_uts, to_uts)
-        csv = lastfm.scrobbles_to_csv_string(page, artist_replacements, album_replacements, track_replacements)
+        csv = lastfm.scrobbles_to_csv_string(page)
         gzipped_csv = gzip_string(csv)
         s3_key = f"{lastfm_username}/scrobbles/{from_uts}-{to_uts}-{page_number}.csv.gz"
         s3.write_bytes_to_s3(s3_bucket, s3_key, gzipped_csv)

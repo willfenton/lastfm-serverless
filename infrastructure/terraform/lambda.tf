@@ -74,11 +74,6 @@ resource "aws_iam_role_policy_attachment" "lambda_policy" {
   policy_arn = aws_iam_policy.lambda_policy.arn
 }
 
-resource "aws_cloudwatch_log_group" "update_range" {
-  name              = "/aws/lambda/${aws_lambda_function.update_range.function_name}"
-  retention_in_days = 14
-}
-
 resource "aws_lambda_function" "update_range" {
   function_name = "${var.project_name}-update-range"
   role          = aws_iam_role.lambda_role.arn
@@ -96,17 +91,8 @@ resource "aws_lambda_function" "update_range" {
       aws_region  = var.aws_region,
       secret_name = aws_secretsmanager_secret.api_key.name,
       data_bucket = aws_s3_bucket.data_bucket.bucket,
-      // TODO get rid of these
-      album_replacements  = jsonencode({}),
-      artist_replacements = jsonencode({}),
-      track_replacements  = jsonencode({})
     }
   }
-}
-
-resource "aws_cloudwatch_log_group" "daily_update" {
-  name              = "/aws/lambda/${aws_lambda_function.daily_update.function_name}"
-  retention_in_days = 14
 }
 
 resource "aws_lambda_function" "daily_update" {
@@ -128,11 +114,6 @@ resource "aws_lambda_function" "daily_update" {
       update_lambda_name = aws_lambda_function.update_range.function_name
     }
   }
-}
-
-resource "aws_cloudwatch_log_group" "get_all_scrobbles" {
-  name              = "/aws/lambda/${aws_lambda_function.get_all_scrobbles.function_name}"
-  retention_in_days = 14
 }
 
 resource "aws_lambda_function" "get_all_scrobbles" {
@@ -157,11 +138,6 @@ resource "aws_lambda_function" "get_all_scrobbles" {
   }
 }
 
-resource "aws_cloudwatch_log_group" "query_athena" {
-  name              = "/aws/lambda/${aws_lambda_function.query_athena.function_name}"
-  retention_in_days = 14
-}
-
 resource "aws_lambda_function" "query_athena" {
   function_name = "${var.project_name}-query-athena"
   role          = aws_iam_role.lambda_role.arn
@@ -182,4 +158,24 @@ resource "aws_lambda_function" "query_athena" {
       public_bucket   = aws_s3_bucket.public_bucket.bucket
     }
   }
+}
+
+resource "aws_cloudwatch_log_group" "update_range" {
+  name              = "/aws/lambda/${aws_lambda_function.update_range.function_name}"
+  retention_in_days = 14
+}
+
+resource "aws_cloudwatch_log_group" "daily_update" {
+  name              = "/aws/lambda/${aws_lambda_function.daily_update.function_name}"
+  retention_in_days = 14
+}
+
+resource "aws_cloudwatch_log_group" "get_all_scrobbles" {
+  name              = "/aws/lambda/${aws_lambda_function.get_all_scrobbles.function_name}"
+  retention_in_days = 14
+}
+
+resource "aws_cloudwatch_log_group" "query_athena" {
+  name              = "/aws/lambda/${aws_lambda_function.query_athena.function_name}"
+  retention_in_days = 14
 }

@@ -3,6 +3,7 @@ import io
 import json
 import logging
 import os
+
 import boto3
 import requests
 
@@ -49,12 +50,12 @@ def get_page(api_key, username, page_number=1, from_uts=0, to_uts=10000000000, l
     response_json = response.json()
 
     if "error" in response_json:
-        logger.error(f"Error {response['error']}: {response['message']}")
+        logger.error(f"Error {response_json['error']}: {response_json['message']}")
 
     return response_json
 
 
-def scrobbles_to_csv_string(page, artist_replacements, album_replacements, track_replacements):
+def scrobbles_to_csv_string(page):
     # string that the CSV writer can write to like a file
     csv_string = io.StringIO()
 
@@ -65,21 +66,9 @@ def scrobbles_to_csv_string(page, artist_replacements, album_replacements, track
         if "@attr" in scrobble and scrobble["@attr"]["nowplaying"] == "true":
             continue
 
-        artist_name = scrobble["artist"]["#text"]
-        for original, replacement in artist_replacements.items():
-            artist_name = artist_name.replace(original, replacement)
-        artist_name = artist_name.strip()
-
-        album_name = scrobble["album"]["#text"]
-        for original, replacement in album_replacements.items():
-            album_name = album_name.replace(original, replacement)
-        album_name = album_name.strip()
-
-        track_name = scrobble["name"]
-        for original, replacement in track_replacements.items():
-            track_name = track_name.replace(original, replacement)
-        track_name = track_name.strip()
-
+        artist_name = scrobble["artist"]["#text"].strip()
+        album_name = scrobble["album"]["#text"].strip()
+        track_name = scrobble["name"].strip()
         unix_timestamp = int(scrobble["date"]["uts"])
 
         # response includes 4 sizes of album art for each scrobble, use the largest (300x300)
@@ -89,6 +78,7 @@ def scrobbles_to_csv_string(page, artist_replacements, album_replacements, track
                 album_art_url = image["#text"]
 
         csv_row = [track_name, album_name, artist_name, unix_timestamp, album_art_url]
+
         writer.writerow(csv_row)
 
     return csv_string.getvalue()
