@@ -6,6 +6,8 @@ node_modules
 #dist/
 dist/bundle*
 dist/data.csv
+lambda-build/
+lambda-code.zip
 
 
 
